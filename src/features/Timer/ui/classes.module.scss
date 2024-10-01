@@ -1,0 +1,22 @@
+.block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    text {
+      fill: white;
+
+      tspan {
+        font-weight: bold;
+        &:first-child {
+          font-size: 50px;
+          margin-bottom: 5px;
+        }
+        &:last-child {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}

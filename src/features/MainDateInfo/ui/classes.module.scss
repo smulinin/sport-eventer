@@ -1,0 +1,28 @@
+.block {
+  color: white;
+  border-radius: 10px;
+  overflow: hidden;
+
+  .up {
+    background-color: #1f3768;
+    padding: 9px 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    h3 {
+      font-size: 96px;
+      font-weight: bold;
+    }
+  }
+  .down {
+    background-color: #172a52;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 22px 48px;
+    h3 {
+      font-size: 37px;
+    }
+  }
+}

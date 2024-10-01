@@ -1,0 +1,16 @@
+.block {
+  color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+
+  h3:first-child {
+    font-size: 96px;
+  }
+  h3:last-child {
+    font-size: 22px;
+  }
+}
