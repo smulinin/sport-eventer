@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 
 import classes from "./classes.module.scss";
 
@@ -20,9 +20,9 @@ export interface IEventList {
   prevApiData: [];
 }
 
-const pingIntervalValueMsc = 15000;
+const pingIntervalValueMsc = 4000;
 
-const MainPage: React.FC = () => {
+const MainPage: React.FC = memo(() => {
   const [keyEventsData, setKeyEventsData] = useState<IEventList>({
     isRequested: false,
     usefulData: {
@@ -94,6 +94,6 @@ const MainPage: React.FC = () => {
       )}
     </div>
   );
-};
+});
 
 export default MainPage;
