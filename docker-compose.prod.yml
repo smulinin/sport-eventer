@@ -1,0 +1,9 @@
+version: "3"
+services:
+  front:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: events_board_front
+    ports:
+      - "3009:3009"

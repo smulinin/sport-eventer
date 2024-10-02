@@ -2,8 +2,4 @@
 /.vscode
 /dist
 /build
-/archives
 .env
-docker-compose*.yml
-tasks.txt
-tsconfig.tsbuildinfos
