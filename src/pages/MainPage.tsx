@@ -9,6 +9,7 @@ import ActualEventWidget from "../widgets/ActualEventWidget/ActualEventWidget";
 import MainDateWidget from "../widgets/MainDateWidget/MainDateWidget";
 import { Event, fetchEvents } from "../shared/api/events/eventsApi";
 import MiniDateWidget from "../widgets/MiniDateWidget/MiniDateWidget";
+import axios from "axios";
 
 export interface IEventList {
   isRequested: boolean;
@@ -20,7 +21,7 @@ export interface IEventList {
   prevApiData: [];
 }
 
-const pingIntervalValueMsc = 15000;
+const pingIntervalValueMsc = 5000;
 
 const MainPage: React.FC = () => {
   const [keyEventsData, setKeyEventsData] = useState<IEventList>({
@@ -39,7 +40,11 @@ const MainPage: React.FC = () => {
       isRequested: true,
     }));
     try {
-      const fetchEventsResponse = await fetchEvents("6");
+      // const fetchEventsResponse = await fetchEvents("6");
+
+      const { data: fetchEventsResponse } = await axios.get(
+        "https://1e71ae2bb46b.ngrok.app/user/vasya"
+      );
 
       const events =
         fetchEventsResponse.data.videostandEvents.current_and_upcoming;
