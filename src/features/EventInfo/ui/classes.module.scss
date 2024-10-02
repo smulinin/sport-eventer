@@ -12,9 +12,26 @@
   }
   h3 {
     font-size: 40px;
+    width: 65vw;
+
+    white-space: normal;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+
+    &:not(.small) {
+      height: 100px;
+    }
 
     &.small {
       font-size: 25px;
+      line-clamp: 1;
+      -webkit-line-clamp: 1;
     }
   }
 }

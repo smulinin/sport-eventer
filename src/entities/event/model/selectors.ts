@@ -1,27 +1,55 @@
-import { Event } from "./types";
+import moment from "moment";
+import { Event } from "../../../shared/api/events/eventsApi";
 
-export const findNearestEvent = (events: Event[]): Event | null => {
+interface IFindEventsInfoResult {
+  currentEvent: Event | null;
+  nearestEvent: Event | null;
+  nextEvent: Event | null;
+}
+
+const sortByStartDate = (a: Event, b: Event) =>
+  moment(a.dt_start).valueOf() - moment(b.dt_start).valueOf();
+
+export const findEventsInfo = (events: Event[]): IFindEventsInfoResult => {
+  let currentEvent: Event | null = null;
+  let nearestEvent: Event | null = null;
+  let nextEvent: Event | null = null;
+  let mainEvent: Event | null = null;
+
   if (!events.length) {
-    return null;
+    return { nearestEvent, nextEvent, currentEvent };
   }
 
-  const now = new Date().getTime();
+  const now = moment().valueOf();
 
-  const currentEvent = events.find(
-    (event) =>
-      new Date(event.dt_start).getTime() <= now &&
-      new Date(event.dt_end).getTime() >= now
+  currentEvent =
+    events.find(
+      (event) =>
+        moment(event.dt_start).valueOf() <= now &&
+        moment(event.dt_end).valueOf() >= now
+    ) || null;
+
+  let futureEvents = events.filter(
+    (event) => moment(event.dt_start).valueOf() > now
   );
 
+  mainEvent = futureEvents.find((event) => event.is_main) || null;
+
+  nearestEvent =
+    futureEvents
+      .filter((event) => event !== mainEvent)
+      .sort(sortByStartDate)[0] || null;
+
   if (currentEvent) {
-    return currentEvent;
+    nextEvent = mainEvent || nearestEvent;
+  } else {
+    nearestEvent = mainEvent || nearestEvent;
+
+    nextEvent =
+      futureEvents
+        .filter((event) => event !== nearestEvent)
+        .sort(sortByStartDate)[0] || null;
   }
 
-  const nearestEvent = events
-    .filter((event) => new Date(event.dt_start).getTime() > now)
-    .sort(
-      (a, b) => new Date(a.dt_start).getTime() - new Date(b.dt_start).getTime()
-    )[0];
-
-  return nearestEvent;
+  return { nearestEvent, nextEvent, currentEvent };
 };

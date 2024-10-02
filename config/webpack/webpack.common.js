@@ -12,7 +12,7 @@ const envKeys = Object.keys(env).reduce((prev, next) => {
 
 module.exports = {
   entry: {
-    index: join(__dirname, "..", "..", "src", "App.tsx"),
+    index: join(__dirname, "..", "..", "src", "app", "App.tsx"),
   },
   output: {
     hashFunction: "xxhash64",

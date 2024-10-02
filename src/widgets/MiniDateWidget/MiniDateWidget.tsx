@@ -4,7 +4,7 @@ import classes from "./classes.module.scss";
 import moment from "moment";
 import "moment/locale/ru";
 
-const DateInfo: FC = memo(() => {
+const MiniDateWidget: FC = memo(() => {
   const [currentTime, setCurrentTime] = useState(moment());
 
   useEffect(() => {
@@ -23,4 +23,4 @@ const DateInfo: FC = memo(() => {
   );
 });
 
-export default DateInfo;
+export default MiniDateWidget;

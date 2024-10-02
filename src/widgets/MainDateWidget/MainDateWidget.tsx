@@ -3,7 +3,7 @@ import classes from "./classes.module.scss";
 import moment from "moment";
 import "moment/locale/ru";
 
-const MainDateInfo = memo(() => {
+const MainDateWidget = memo(() => {
   const [currentTime, setCurrentTime] = useState(moment());
 
   useEffect(() => {
@@ -27,4 +27,4 @@ const MainDateInfo = memo(() => {
   );
 });
 
-export default MainDateInfo;
+export default MainDateWidget;

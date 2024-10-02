@@ -1,49 +1,96 @@
 import React, { useEffect, useState } from "react";
 
 import classes from "./classes.module.scss";
-import DateInfo from "../features/DateInfo/ui/DateInfo";
-import EventInfo from "../features/EventInfo/ui/EventInfo";
-import NearestEventInfo from "../features/NearestEventInfo/ui/NearestEventInfo";
-import { Event, ServerResponse } from "../entities/event/model/types";
 
-import MainDateInfo from "../features/MainDateInfo/ui/MainDateInfo";
-import { findNearestEvent } from "../entities/event/model/selectors";
+import EventInfo from "../features/EventInfo/ui/EventInfo";
+
+import { findEventsInfo } from "../entities/event/model/selectors";
+import ActualEventWidget from "../widgets/ActualEventWidget/ActualEventWidget";
+import MainDateWidget from "../widgets/MainDateWidget/MainDateWidget";
+import { Event, fetchEvents } from "../shared/api/events/eventsApi";
+import MiniDateWidget from "../widgets/MiniDateWidget/MiniDateWidget";
+
+export interface IEventList {
+  isRequested: boolean;
+  usefulData: {
+    currentEvent: Event | null;
+    nearestEvent: Event | null;
+    nextEvent: Event | null;
+  };
+  prevApiData: [];
+}
+
+const pingIntervalValueMsc = 15000;
 
 const MainPage: React.FC = () => {
-  const [nearestEvent, setNearestEvent] = useState<Event | null>(null);
+  const [keyEventsData, setKeyEventsData] = useState<IEventList>({
+    isRequested: false,
+    usefulData: {
+      currentEvent: null,
+      nearestEvent: null,
+      nextEvent: null,
+    },
+    prevApiData: [],
+  });
+
+  const fetchData = async () => {
+    setKeyEventsData((prev) => ({
+      ...prev,
+      isRequested: true,
+    }));
+    try {
+      const fetchEventsResponse = await fetchEvents("6");
+
+      const events =
+        fetchEventsResponse.data.videostandEvents.current_and_upcoming;
+      const { currentEvent, nearestEvent, nextEvent } = findEventsInfo(events);
+      setKeyEventsData((prev) => ({
+        ...prev,
+        usefulData: {
+          ...prev.usefulData,
+          currentEvent,
+          nearestEvent,
+          nextEvent,
+        },
+      }));
+    } catch (error) {
+    } finally {
+      setKeyEventsData((prev) => ({
+        ...prev,
+        isRequested: false,
+      }));
+    }
+  };
 
   useEffect(() => {
-    fetch("https://beta.sosportom.ru/graphql/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `query videostandEvents($videostand_id: ID!) {
-          videostandEvents(videostand_id: "6") {
-            current_and_upcoming {
-              title, is_main, dt_start, dt_end, dt_create
-            }
-          }
-        }`,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data: ServerResponse) => {
-        const events = data.data.videostandEvents.current_and_upcoming;
-        const nearestEvent = findNearestEvent(events);
-        setNearestEvent(nearestEvent);
-      });
+    fetchData();
+
+    const intervalId = setInterval(() => {
+      fetchData();
+    }, pingIntervalValueMsc);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
     <div className={classes.main}>
-      {nearestEvent ? (
+      {keyEventsData.usefulData.currentEvent ||
+      keyEventsData.usefulData.nearestEvent ? (
         <>
-          <DateInfo />
-          <NearestEventInfo eventInfo={nearestEvent} />
-          <EventInfo small eventInfo={nearestEvent} />
+          <MiniDateWidget />
+          <ActualEventWidget
+            eventInfo={
+              keyEventsData.usefulData.currentEvent ||
+              keyEventsData.usefulData.nearestEvent!
+            }
+            haveCurrentEvent={!!keyEventsData.usefulData.currentEvent}
+          />
+          {keyEventsData.usefulData.nextEvent ? (
+            <EventInfo small eventInfo={keyEventsData.usefulData.nextEvent} />
+          ) : null}
         </>
       ) : (
-        <MainDateInfo />
+        <MainDateWidget />
       )}
     </div>
   );

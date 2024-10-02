@@ -1,15 +1,44 @@
 import React, { FC, useEffect, useState } from "react";
 import classes from "./classes.module.scss";
 import { pluralizeRu } from "../../../shared/utils/pluralize-ru";
-import EventInfo from "../../EventInfo/ui/EventInfo";
-import { Event } from "../../../entities/event/model/types";
+import TimerCircle from "./TimerCircle/TimerCircle";
+import CircleSkeleton from "./CircleSkeleton/CircleSkeleton";
+import { deepEqual } from "../../../shared/utils/deep-equal";
+import { Event } from "../../../shared/api/events/eventsApi";
+import moment from "moment";
 
 interface ITimerProps {
   eventInfo: Event;
 }
 
+const radius = 70;
+const circumference = 2 * Math.PI * radius;
+const maxTimerDaysCount = 7;
+
+const calculateOffset = (value: number, total: number) => {
+  return circumference - (circumference * value) / total;
+};
+
+enum CircleColorsEnum {
+  DAYS = "#0062B5",
+  HOURS = "#D62F0D",
+  MINUTES = "#FDAE47",
+  SECONDS = "#51acd8",
+}
+
 const Timer: FC<ITimerProps> = ({ eventInfo }) => {
-  const targetDate = new Date(eventInfo.dt_start).getTime();
+  const [prevEventInfo, setPrevEventInfo] = useState<Event | null>(null);
+
+  const [isCalculated, setIsCalculated] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!deepEqual(eventInfo, prevEventInfo)) {
+      setIsCalculated(true);
+      setPrevEventInfo(eventInfo);
+    }
+  }, [eventInfo, prevEventInfo]);
+
+  const targetDate = moment(eventInfo.dt_start).valueOf();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -17,14 +46,6 @@ const Timer: FC<ITimerProps> = ({ eventInfo }) => {
     minutes: 0,
     seconds: 0,
   });
-
-  const radius = 70;
-  const circumference = 2 * Math.PI * radius;
-
-  const [dayOffset, setDayOffset] = useState(circumference);
-  const [hourOffset, setHourOffset] = useState(circumference);
-  const [minuteOffset, setMinuteOffset] = useState(circumference);
-  const [secondOffset, setSecondOffset] = useState(circumference);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -36,156 +57,79 @@ const Timer: FC<ITimerProps> = ({ eventInfo }) => {
         return;
       }
 
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const totalDays = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const isExtraDaysStage = totalDays > maxTimerDaysCount;
+      const extraDays = isExtraDaysStage ? totalDays - maxTimerDaysCount : 0;
+
+      const days = isExtraDaysStage ? extraDays : totalDays;
       const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((difference / 1000 / 60) % 60);
       const seconds = Math.floor((difference / 1000) % 60);
 
       setTimeLeft({ days, hours, minutes, seconds });
 
-      const totalDays = (targetDate - Date.now()) / (1000 * 60 * 60 * 24);
-      setDayOffset(circumference - (circumference * days) / totalDays);
-
-      const totalHours = 24;
-      const totalMinutes = 60;
-      const totalSeconds = 60;
-
-      setHourOffset(circumference - (circumference * hours) / totalHours);
-      setMinuteOffset(circumference - (circumference * minutes) / totalMinutes);
-      setSecondOffset(circumference - (circumference * seconds) / totalSeconds);
+      setIsCalculated(false);
     };
 
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [circumference, targetDate]);
+  }, [targetDate]);
 
   return (
     <div className={classes.block}>
-      <div>
-        <svg width="200" height="200">
-          <circle cx="100" cy="100" r={radius} strokeWidth="10" fill="none" />
-          <circle
-            cx="100"
-            cy="100"
-            r={radius}
-            stroke="#0062B5"
-            strokeWidth="10"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={dayOffset}
-            strokeLinecap="round"
+      {isCalculated ? (
+        <div className={classes.skeletonBlock}>
+          {Array.from({ length: 4 }).map((val, index) => (
+            <CircleSkeleton key={index} />
+          ))}
+        </div>
+      ) : (
+        <>
+          <TimerCircle
+            value={timeLeft.days}
+            label={pluralizeRu(timeLeft.days, "день", "дня", "дней")}
+            color={CircleColorsEnum.DAYS}
+            strokeOffset={calculateOffset(
+              timeLeft.days,
+              timeLeft.days > maxTimerDaysCount
+                ? maxTimerDaysCount
+                : timeLeft.days
+            )}
+            radius={radius}
+            circumference={circumference}
           />
-          <text
-            x="100"
-            y="100"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="24px"
-            className={classes.svgText}
-          >
-            <tspan x="100" dy="-10" fontSize="24px">
-              {timeLeft.days}
-            </tspan>
-            <tspan x="100" dy="35" fontSize="16px">
-              {pluralizeRu(timeLeft.days, "день", "дня", "дней")}
-            </tspan>
-          </text>
-        </svg>
-      </div>
-      <div>
-        <svg width="200" height="200">
-          <circle cx="100" cy="100" r={radius} strokeWidth="10" fill="none" />
-          <circle
-            cx="100"
-            cy="100"
-            r={radius}
-            stroke="#D62F0D"
-            strokeWidth="10"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={hourOffset}
-            strokeLinecap="round"
+          <TimerCircle
+            value={timeLeft.hours}
+            label={pluralizeRu(timeLeft.hours, "час", "часа", "часов")}
+            color={CircleColorsEnum.HOURS}
+            strokeOffset={calculateOffset(timeLeft.hours, 24)}
+            radius={radius}
+            circumference={circumference}
           />
-          <text
-            x="100"
-            y="100"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="24px"
-            className={classes.svgText}
-          >
-            <tspan x="100" dy="-10" fontSize="24px">
-              {timeLeft.hours}
-            </tspan>
-            <tspan x="100" dy="35" fontSize="16px">
-              {pluralizeRu(timeLeft.hours, "час", "часа", "часов")}
-            </tspan>
-          </text>
-        </svg>
-      </div>
-      <div>
-        <svg width="200" height="200">
-          <circle cx="100" cy="100" r={radius} strokeWidth="10" fill="none" />
-          <circle
-            cx="100"
-            cy="100"
-            r={radius}
-            stroke="#FDAE47"
-            strokeWidth="10"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={minuteOffset}
-            strokeLinecap="round"
+          <TimerCircle
+            value={timeLeft.minutes}
+            label={pluralizeRu(timeLeft.minutes, "минута", "минуты", "минут")}
+            color={CircleColorsEnum.MINUTES}
+            strokeOffset={calculateOffset(timeLeft.minutes, 60)}
+            radius={radius}
+            circumference={circumference}
           />
-          <text
-            x="100"
-            y="100"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="24px"
-            className={classes.svgText}
-          >
-            <tspan x="100" dy="-10" fontSize="24px">
-              {timeLeft.minutes}
-            </tspan>
-            <tspan x="100" dy="35" fontSize="16px">
-              {pluralizeRu(timeLeft.minutes, "минута", "минуты", "минут")}
-            </tspan>
-          </text>
-        </svg>
-      </div>
-      <div>
-        <svg width="200" height="200">
-          <circle cx="100" cy="100" r={radius} strokeWidth="10" fill="none" />
-          <circle
-            cx="100"
-            cy="100"
-            r={radius}
-            stroke="#51acd8"
-            strokeWidth="10"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={secondOffset}
-            strokeLinecap="round"
+          <TimerCircle
+            value={timeLeft.seconds}
+            label={pluralizeRu(
+              timeLeft.seconds,
+              "секунда",
+              "секунды",
+              "секунд"
+            )}
+            color={CircleColorsEnum.SECONDS}
+            strokeOffset={calculateOffset(timeLeft.seconds, 60)}
+            radius={radius}
+            circumference={circumference}
           />
-          <text
-            x="100"
-            y="100"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="24px"
-            className={classes.svgText}
-          >
-            <tspan x="100" dy="-10" fontSize="24px">
-              {timeLeft.seconds}
-            </tspan>
-            <tspan x="100" dy="35" fontSize="16px">
-              {pluralizeRu(timeLeft.seconds, "секунда", "секунды", "секунд")}
-            </tspan>
-          </text>
-        </svg>
-      </div>
+        </>
+      )}
     </div>
   );
 };
