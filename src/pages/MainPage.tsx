@@ -20,7 +20,7 @@ export interface IEventList {
   prevApiData: [];
 }
 
-const pingIntervalValueMsc = 4000;
+const pingIntervalValueMsc = 15000;
 
 const MainPage: React.FC = memo(() => {
   const [keyEventsData, setKeyEventsData] = useState<IEventList>({
