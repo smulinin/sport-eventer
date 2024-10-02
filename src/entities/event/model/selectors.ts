@@ -1,18 +1,27 @@
 import { Event } from "./types";
 
-export function getCurrentEvent(
-  events: Event[],
-  currentTime: Date
-): Event | null {
-  return (
-    events.find(
-      (event) =>
-        new Date(event.dt_start) <= currentTime &&
-        new Date(event.dt_end) >= currentTime
-    ) || null
-  );
-}
+export const findNearestEvent = (events: Event[]): Event | null => {
+  if (!events.length) {
+    return null;
+  }
 
-export function getNextEvent(events: Event[], currentTime: Date): Event | null {
-  return events.find((event) => new Date(event.dt_start) > currentTime) || null;
-}
+  const now = new Date().getTime();
+
+  const currentEvent = events.find(
+    (event) =>
+      new Date(event.dt_start).getTime() <= now &&
+      new Date(event.dt_end).getTime() >= now
+  );
+
+  if (currentEvent) {
+    return currentEvent;
+  }
+
+  const nearestEvent = events
+    .filter((event) => new Date(event.dt_start).getTime() > now)
+    .sort(
+      (a, b) => new Date(a.dt_start).getTime() - new Date(b.dt_start).getTime()
+    )[0];
+
+  return nearestEvent;
+};

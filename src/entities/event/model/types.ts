@@ -5,3 +5,14 @@ export interface Event {
   dt_end: string;
   dt_create: string;
 }
+
+interface VideostandEvents {
+  current_and_upcoming: Event[];
+  finished: Event[];
+}
+
+export interface ServerResponse {
+  data: {
+    videostandEvents: VideostandEvents;
+  };
+}

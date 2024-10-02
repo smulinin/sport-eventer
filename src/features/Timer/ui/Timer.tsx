@@ -2,13 +2,14 @@ import React, { FC, useEffect, useState } from "react";
 import classes from "./classes.module.scss";
 import { pluralizeRu } from "../../../shared/utils/pluralize-ru";
 import EventInfo from "../../EventInfo/ui/EventInfo";
+import { Event } from "../../../entities/event/model/types";
 
 interface ITimerProps {
-  date: Date;
+  eventInfo: Event;
 }
 
-const Timer: FC<ITimerProps> = ({ date }) => {
-  const targetDate = date.getTime();
+const Timer: FC<ITimerProps> = ({ eventInfo }) => {
+  const targetDate = new Date(eventInfo.dt_start).getTime();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
